@@ -1,18 +1,11 @@
 import mongoose from "mongoose";
 
-export const connectDB = async () => {
+// Function to connect to the mongodb database
+export const connectDB = async () =>{
     try {
-        const uri = process.env.MONGODB_URI;
-        if (!uri) {
-            console.error("MONGODB_URI missing");
-            process.exit(1);
-        }
-        mongoose.set("strictQuery", true);
         mongoose.connection.on('connected', ()=> console.log('Database Connected'));
-        mongoose.connection.on('error', (err)=> console.error('Mongo error:', err.message));
-        await mongoose.connect(uri, { dbName: process.env.MONGODB_DB_NAME || 'chat-app' });
+       await mongoose.connect(`${process.env.MONGODB_URI}/chat-app`) 
     } catch (error) {
-        console.error('Failed to connect MongoDB:', error.message);
-        process.exit(1);
+        console.log(error);
     }
-};
+}
