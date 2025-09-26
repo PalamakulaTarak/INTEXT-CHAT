@@ -1,21 +1,24 @@
-import User from "../models/User.js";
 import jwt from "jsonwebtoken";
+import User from "../models/User.js";
 
-// Middleware to protect routes
-export const protectRoute = async (req, res, next)=>{
-    try {
-        const token = req.headers.token;
+export const protectRoute = async (req, res, next) => {
+  try {
+    const h = req.headers.authorization || "";
+    let token = null;
+    if (h.startsWith("Bearer ")) token = h.slice(7);
+    else if (req.headers["x-auth-token"]) token = req.headers["x-auth-token"]; 
+    else if (req.query.token) token = req.query.token;
 
-        const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    if (!token) return res.status(401).json({ success: false, message: "No token" });
 
-        const user = await User.findById(decoded.userId).select("-password");
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select("-password");
+    if (!user) return res.status(401).json({ success: false, message: "User not found" });
 
-        if(!user) return res.json({ success: false, message: "User not found" });
-
-        req.user = user;
-        next();
-    } catch (error) {
-        console.log(error.message);
-        res.json({ success: false, message: error.message });
-    }
-}
+    req.user = user;
+    next();
+  } catch (e) {
+    console.error("Auth error", e.message);
+    return res.status(401).json({ success: false, message: "Invalid token" });
+  }
+};
