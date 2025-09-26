@@ -7,6 +7,7 @@ export const protectRoute = async (req, res, next) => {
     let token = null;
     if (h.startsWith("Bearer ")) token = h.slice(7);
     else if (req.headers["x-auth-token"]) token = req.headers["x-auth-token"]; 
+    else if (req.headers["token"]) token = req.headers["token"]; // added support for custom 'token' header
     else if (req.query.token) token = req.query.token;
 
     if (!token) return res.status(401).json({ success: false, message: "No token" });
